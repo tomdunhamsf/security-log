@@ -1,0 +1,41 @@
+log format
+time cip sip login ua method url respcode reqhdrsize reqsize resphrdsize respsize referrer
+
+
+Slowloris
+
+[Mon May 12 10:00:01 2026] [info] [client 192.0.2.10] Request header read timeout
+[Mon May 12 10:00:01 2026] [error] [client 192.0.2.10] Timeout waiting for request headers
+[Mon May 12 10:00:02 2026] [info] [client 192.0.2.10] Request header read timeout
+[Mon May 12 10:00:02 2026] [error] [client 192.0.2.10] Timeout waiting for request headers
+[Mon May 12 10:00:02 2026] [error] [client 192.0.2.10] Timeout waiting for request headers
+
+postgres n1md4n1md4
+
+What was built
+All files are in front/ and documented in front.md.
+
+Pages
+Route	File	Description
+/	src/app/page.tsx	Login form — submits to /api/login
+/dashboard	src/app/dashboard/page.tsx	Post-login home with Upload and View Logs cards
+/upload	src/app/upload/page.tsx	Drag-and-drop upload with client-side Zscaler validation
+/logs	src/app/logs/page.tsx	List of ingested log files as clickable links
+/logs/[filename]	src/app/logs/[filename]/page.tsx	Scrollable table view of a log file
+API Routes (BFF proxies to https://localhost:8080)
+Route	File
+POST /api/login	src/app/api/login/route.ts
+POST /api/logout	src/app/api/logout/route.ts
+POST /api/ingest	src/app/api/ingest/route.ts
+GET /api/display	src/app/api/display/route.ts
+GET /api/display/[filename]	src/app/api/display/[filename]/route.ts
+Key libraries
+src/lib/zscaler-validator.ts — validates required fields (action, reason, username, url, status) and Zscaler-distinctive fields before upload
+src/lib/backend.ts — undici-based fetch wrapper that accepts self-signed certs in dev
+src/proxy.ts — route protection; redirects unauthenticated users to /
+To run
+
+cd front
+npm install   # already done
+npm run dev   # starts on http://localhost:3000
+NODE_TLS_REJECT_UNAUTHORIZED=0 is injected automatically for dev so the Next.js server can reach https://localhost:8080 with a self-signed cert.
