@@ -7,3 +7,5 @@ target/
 *.jks
 HELP.md
 .DS_Store
+scratchpad.txt
+back.md
