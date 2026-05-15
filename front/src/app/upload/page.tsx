@@ -49,9 +49,9 @@ export default function UploadPage() {
     setServerMessage('');
 
     const text = await file.text();
-    const result = validateZscalerLogs(text);
+    //const result = validateZscalerLogs(text);
 
-    const summary: ValidationSummary = {
+    /*const summary: ValidationSummary = {
       valid: result.valid,
       errorCount: result.errors.length,
       warningCount: result.warnings.length,
@@ -59,13 +59,14 @@ export default function UploadPage() {
       errors: result.errors,
       warnings: result.warnings,
     };
+    
     setValidation(summary);
 
     if (!result.valid) {
       setState('error');
       return;
     }
-
+    */
     setState('uploading');
     try {
       const form = new FormData();
@@ -185,11 +186,13 @@ export default function UploadPage() {
           >
             {state === 'validating' && 'Validating…'}
             {state === 'uploading' && 'Uploading…'}
-            {(state === 'idle' || state === 'error' || state === 'success') && 'Validate & Upload'}
+            {(state === 'idle' || state === 'error' || state === 'success') && 'Upload'}
           </button>
 
           <p className="text-xs text-center text-gray-400">
-            Only Zscaler NSS web proxy log format is accepted.{' '}
+            Only tab delimited logs of the following form are accepted:<br/>
+            time cip sip login ua method url respcode reqhdrsize reqsize resphrdsize respsize referrer<br/>
+            Field names are from zScaler - 
             <a
               href="https://help.zscaler.com/zia/nss-feed-output-format-web-logs"
               target="_blank"
