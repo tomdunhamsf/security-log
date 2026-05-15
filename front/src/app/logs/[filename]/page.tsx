@@ -2,7 +2,23 @@
 
 import { useEffect, useState, use } from 'react';
 import Link from 'next/link';
-import { PREFERRED_COLUMNS, type ZscalerLogEntry } from '@/lib/zscaler-validator';
+import { type ZscalerLogEntry } from '@/lib/zscaler-validator';
+
+const LOG_COLUMNS = [
+  'time',
+  'cip',
+  'sip',
+  'login',
+  'ua',
+  'method',
+  'url',
+  'respcode',
+  'reqhdrsize',
+  'reqsize',
+  'resphrdsize',
+  'respsize',
+  'referrer',
+];
 
 // Parse raw Zscaler NSS log text into structured entries
 function parseRawLog(text: string): ZscalerLogEntry[] {
@@ -24,18 +40,6 @@ function parseRawLog(text: string): ZscalerLogEntry[] {
     .filter((e) => Object.keys(e).length > 0);
 }
 
-function deriveColumns(entries: ZscalerLogEntry[]): string[] {
-  const allKeys = new Set<string>();
-  entries.forEach((e) => Object.keys(e).forEach((k) => allKeys.add(k)));
-
-  // Preferred columns first, then any extras alphabetically
-  const ordered = PREFERRED_COLUMNS.filter((c) => allKeys.has(c));
-  const extras = [...allKeys]
-    .filter((k) => !PREFERRED_COLUMNS.includes(k))
-    .sort();
-  return [...ordered, ...extras];
-}
-
 interface AnalysisResult {
   description: string;
   certainty: number;
@@ -47,11 +51,11 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
   const decoded = decodeURIComponent(filename);
 
   const [entries, setEntries] = useState<ZscalerLogEntry[]>([]);
-  const [columns, setColumns] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [noAnomaly, setNoAnomaly] = useState(false);
   const [analyzeError, setAnalyzeError] = useState('');
 
   useEffect(() => {
@@ -75,7 +79,6 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
         }
 
         setEntries(parsed);
-        setColumns(deriveColumns(parsed));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load log file.');
       } finally {
@@ -89,6 +92,7 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
     setAnalyzing(true);
     setAnalyzeError('');
     setAnalysis(null);
+    setNoAnomaly(false);
     try {
       const res = await fetch(`/api/display/${encodeURIComponent(decoded)}/analyze`, {
         method: 'POST',
@@ -97,6 +101,8 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
       const data: AnalysisResult = await res.json();
       if (data.certainty > 0) {
         setAnalysis(data);
+      } else {
+        setNoAnomaly(true);
       }
     } catch (err) {
       setAnalyzeError(err instanceof Error ? err.message : 'Analysis failed.');
@@ -153,6 +159,12 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
           </div>
         )}
 
+        {noAnomaly && (
+          <div className="mx-4 mb-4 rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-sm font-semibold text-green-800">
+            No anomaly found.
+          </div>
+        )}
+
         {!loading && !error && entries.length === 0 && (
           <p className="text-sm text-gray-500 text-center mt-12">No parseable log entries found.</p>
         )}
@@ -162,7 +174,7 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
             <table className="min-w-full text-xs divide-y divide-gray-200">
               <thead className="bg-gray-100 sticky top-0">
                 <tr>
-                  {columns.map((col) => (
+                  {LOG_COLUMNS.map((col) => (
                     <th
                       key={col}
                       className="px-3 py-2 text-left font-semibold text-gray-600 uppercase tracking-wide whitespace-nowrap"
@@ -179,7 +191,7 @@ export default function LogViewerPage({ params }: { params: Promise<{ filename: 
                     style={threatRows.has(i) ? { backgroundColor: '#fee2e2' } : undefined}
                     className={threatRows.has(i) ? undefined : i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                   >
-                    {columns.map((col) => (
+                    {LOG_COLUMNS.map((col) => (
                       <td
                         key={col}
                         title={entry[col] ?? ''}

@@ -1,6 +1,7 @@
 package com.securitylog.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.securitylog.controller.GlobalExceptionHandler;
 import com.securitylog.dto.AnalysisResult;
 import com.securitylog.entity.LogEntry;
 import dev.langchain4j.data.message.AiMessage;
@@ -10,18 +11,22 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
 import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 @Component   // disabled while outbound HTTPS to OpenAI is blocked by a TLS-intercepting proxy
 public class OpenAiAnalyzer {
 
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
     private static final String SYSTEM_PROMPT = """
             You are a web log file analyzer. I will attach log files in \
             https://help.zscaler.com/zia/nss-feed-output-format-web-logs format.
             Fields are: time cip sip login ua method url respcode reqhdrsize reqsize resphrdsize respsize referrer
             For each log file return a JSON output as such \
-            { "description": "problem description", "certainty": percent sure of verdict, "rows": [array of rows involved in the threat]}
+            { "description": "problem description", "certainty": percent sure of verdict, "rows": [array of row numbers (0 based index) involved in the threat]}
             It is possible for there to be no threat, in which case there is a 0 certainty, no description, and no rows.
             Return only raw JSON with no markdown or code fences.
             """;
@@ -51,6 +56,7 @@ public class OpenAiAnalyzer {
         );
         try {
             Response<AiMessage> response = model.generate(messages);
+            log.info(response.content().text());
             String json = stripFences(response.content().text());
             return objectMapper.readValue(json, AnalysisResult.class);
         } catch (Exception e) {
