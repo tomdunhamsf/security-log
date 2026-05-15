@@ -37,6 +37,8 @@ services:
       - "3000"
     environment:
       BACKEND_URL: https://back:8080
+      # Self-signed backend cert; matches the dev script's behaviour.
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
     depends_on:
       - back
     restart: unless-stopped

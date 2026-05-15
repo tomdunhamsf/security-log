@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
+@Component   // disabled while outbound HTTPS to OpenAI is blocked by a TLS-intercepting proxy
 public class OpenAiAnalyzer {
 
     private static final String SYSTEM_PROMPT = """

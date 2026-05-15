@@ -17,7 +17,7 @@ public class DisplayController {
     private final LogService logService;
     private final OpenAiAnalyzer openAiAnalyzer;
 
-    public DisplayController(LogService logService, OpenAiAnalyzer openAiAnalyzer) {
+    public DisplayController(LogService logService , OpenAiAnalyzer openAiAnalyzer) {
         this.logService = logService;
         this.openAiAnalyzer = openAiAnalyzer;
     }
@@ -38,10 +38,11 @@ public class DisplayController {
         }
         return ResponseEntity.ok(entries);
     }
-
-    /** Sends all rows for the log to OpenAI and returns a threat analysis. */
+ 
+    /*  Sends all rows for the log to OpenAI and returns a threat analysis. */
     @PostMapping("/{logName}/analyze")
     public ResponseEntity<?> analyzeLog(@PathVariable String logName) {
+
         List<LogEntry> entries = logService.getEntriesByLogName(logName);
         if (entries.isEmpty()) {
             return ResponseEntity.status(404)
@@ -55,4 +56,5 @@ public class DisplayController {
                     .body(Map.of("error", "Analysis failed: " + e.getMessage()));
         }
     }
+    
 }

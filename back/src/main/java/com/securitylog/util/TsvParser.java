@@ -2,9 +2,18 @@ package com.securitylog.util;
 
 import com.securitylog.entity.LogEntry;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
- * Parses tab-delimited Zscaler log lines with columns in fixed order:
+ * Parses keyless log lines with columns in fixed order:
  * time  cip  sip  login  ua  method  url  respcode  reqhdrsize  reqsize  resphrdsize  respsize  referrer
+ *
+ * Handles two physical formats:
+ *   1. True tab-separated (`\t` between every column)
+ *   2. Whitespace-padded — the date has an internal space (e.g. "05-13-2026 09:15:01:123")
+ *      and the user-agent contains spaces, so the regex anchors on the date format
+ *      at the start and the HTTP method as the boundary after the UA.
  */
 public class TsvParser {
 
@@ -22,16 +31,35 @@ public class TsvParser {
     private static final int COL_RESPSIZE    = 11;
     private static final int COL_REFERRER    = 12;
 
+    private static final Pattern WHITESPACE_LINE = Pattern.compile(
+            "^(\\d{2}-\\d{2}-\\d{4}\\s+\\d{2}:\\d{2}:\\d{2}:\\d{3})\\s+" +  // time
+            "(\\S+)\\s+" +                                                    // cip
+            "(\\S+)\\s+" +                                                    // sip
+            "(\\S+)\\s+" +                                                    // login
+            "(.+?)\\s+" +                                                     // ua (lazy)
+            "(GET|POST|PUT|DELETE|HEAD|OPTIONS|PATCH|CONNECT|TRACE)\\s+" +    // method
+            "(\\S+)\\s+" +                                                    // url
+            "(\\S+)\\s+" +                                                    // respcode
+            "(\\S+)\\s+" +                                                    // reqhdrsize
+            "(\\S+)\\s+" +                                                    // reqsize
+            "(\\S+)\\s+" +                                                    // resphrdsize
+            "(\\S+)\\s+" +                                                    // respsize
+            "(\\S+)\\s*$"                                                     // referrer
+    );
+
     private TsvParser() {}
 
-    /**
-     * Returns null for blank lines and header rows (first column == "time").
-     */
     public static LogEntry parseLine(String line, String logName) {
         if (line == null || line.isBlank()) return null;
 
-        String[] cols = line.split("\t", -1);
-        if (cols.length < COL_URL + 1) return null;
+        String[] cols;
+        if (line.contains("\t")) {
+            cols = line.split("\t", -1);
+            if (cols.length < COL_URL + 1) return null;
+        } else {
+            cols = splitWhitespacePadded(line);
+            if (cols == null) return null;
+        }
 
         // Skip a header row if present
         if (cols[COL_TIME].trim().equalsIgnoreCase("time")) return null;
@@ -53,6 +81,16 @@ public class TsvParser {
         entry.setReferrer(truncate(col(cols, COL_REFERRER), 2048));
 
         return entry;
+    }
+
+    private static String[] splitWhitespacePadded(String line) {
+        Matcher m = WHITESPACE_LINE.matcher(line.trim());
+        if (!m.matches()) return null;
+        String[] out = new String[13];
+        for (int i = 0; i < 13; i++) {
+            out[i] = m.group(i + 1);
+        }
+        return out;
     }
 
     private static String col(String[] cols, int idx) {

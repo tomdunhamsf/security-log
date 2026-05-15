@@ -39,7 +39,7 @@ Response (200):
 ```
 Appends to any existing rows with the same log name (never overwrites).
 
-**Format auto-detection**: the first non-blank line is inspected. If it contains `=` the file is parsed as Zscaler NSS key=value format (`ZscalerParser`). Otherwise it is parsed as tab-delimited with columns in fixed order: `time cip sip login ua method url respcode reqhdrsize reqsize resphrdsize respsize referrer` (`TsvParser`). Header rows (first column == `time`) are skipped automatically.
+**Format auto-detection**: the first non-blank line is inspected. If it contains `=` the file is parsed as Zscaler NSS key=value format (`ZscalerParser`). Otherwise `TsvParser` is used, which handles both true tab-separated files and whitespace-padded files (where the date has an internal space like `05-13-2026 09:15:01:123` and the user-agent contains spaces). For the whitespace-padded form, a regex anchored on the date format and the HTTP method as a delimiter identifies field boundaries. Columns are in fixed order: `time cip sip login ua method url respcode reqhdrsize reqsize resphrdsize respsize referrer`. Header rows (first column == `time`) are skipped automatically.
 
 ### GET /display
 
