@@ -1,0 +1,46 @@
+services:
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: securitylog
+      POSTGRES_USER: securitylog
+      POSTGRES_PASSWORD: securitylog
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U securitylog -d securitylog"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  back:
+    build: ./back
+    ports:
+      - "8080:8080"
+    env_file: .env          # provides OPEN_AI_KEY
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/securitylog
+      DB_USER: securitylog
+      DB_PASSWORD: securitylog
+      # IMPORTANT: replace with a strong Base64-encoded secret (≥32 bytes) before deploying
+      JWT_SECRET: c2VjdXJpdHlsb2ctZGV2LXNlY3JldC0yMDI0LWRvLW5vdC11c2UtaW4tcHJvZHVjdGlvbg==
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  front:
+    build: ./front
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: https://back:8080
+      BACKEND_TLS_VERIFY: "false"   # backend uses a self-signed cert; internal traffic only
+    depends_on:
+      - back
+    restart: unless-stopped
+
+volumes:
+  pgdata:

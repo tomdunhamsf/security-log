@@ -108,16 +108,26 @@ npm run dev     # starts on http://localhost:3000
 
 `NODE_TLS_REJECT_UNAUTHORIZED=0` is set automatically via `cross-env` in the `dev` script so
 that the Next.js server process can reach `https://localhost:8080` with a self-signed certificate.
-**Do not use this flag in production.**
 
-### Build for production
+### Environment variables (server-side)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `BACKEND_URL` | `https://localhost:8080` | URL the Next.js server uses to reach the Spring Boot backend |
+| `BACKEND_TLS_VERIFY` | *(unset → true)* | Set to `false` to accept self-signed backend certs (Docker) |
+
+### Build for production / Docker
+
+`next.config.ts` sets `output: 'standalone'` so the Docker image only includes what Next.js
+needs to run — no `node_modules` in the final layer.
 
 ```bash
+# standalone build (used by Dockerfile)
 npm run build
-npm start
+node .next/standalone/server.js
 ```
 
-Ensure the backend TLS certificate is trusted (or properly configured) before running in production.
+See `deploy.md` for Docker Compose instructions.
 
 ---
 
@@ -125,6 +135,8 @@ Ensure the backend TLS certificate is trusted (or properly configured) before ru
 
 ```
 front/
+├── Dockerfile
+├── .dockerignore
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx                        # Login page

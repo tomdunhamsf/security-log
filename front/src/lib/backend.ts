@@ -1,11 +1,11 @@
 import { Agent, fetch as undiciFetch, type RequestInit as UndiciRequestInit } from 'undici';
 
-const BACKEND = 'https://localhost:8080';
+const BACKEND = process.env.BACKEND_URL ?? 'https://localhost:8080';
 
-// Accept self-signed certs in dev; enforce in production
+// Reject self-signed certs unless BACKEND_TLS_VERIFY=false is set explicitly
 const agent = new Agent({
   connect: {
-    rejectUnauthorized: process.env.NODE_ENV === 'production',
+    rejectUnauthorized: process.env.BACKEND_TLS_VERIFY !== 'false',
   },
 });
 

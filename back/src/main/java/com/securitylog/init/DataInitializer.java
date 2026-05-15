@@ -25,10 +25,10 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         if (userRepository.count() == 0) {
             String defaultPassword = "ChangeMe123!";
-            userRepository.save(new User("admin", passwordEncoder.encode(defaultPassword)));
+            userRepository.save(new User("secadmin", passwordEncoder.encode(defaultPassword)));
             log.warn("=============================================================");
             log.warn("No users found. Created default admin account.");
-            log.warn("  Username: admin");
+            log.warn("  Username: secadmin");
             log.warn("  Password: {}", defaultPassword);
             log.warn("Change this password immediately in production!");
             log.warn("=============================================================");
