@@ -56,6 +56,8 @@ I expect that a BERT based transformer pretrained on real web data word be bette
 There is also a pretrained BERT based log analyzer on HuggingFace, but GPT works on the test files reasonably well.
 (I do think the first log file is more accurately considered a Slowloris type attack, however.)
 
+Isolation forests are another method to train on real world data for anomaly detection.  If I had more time, I would have used more Python for the easy of trying out different AI approaches. 
+
 Given time constraints, I did not want to move to a Flask backed, as I have not used it before.  Therefore, I'm just going with
 SpringBoot with Langchanin4j and my OpenAI API key.  I'd feel more comfortable using huggingface transformers in Python for
 a prod system.  I strongly suspect I could just tell Claude Code to translate the Spring Boot to Flask,
