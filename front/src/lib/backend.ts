@@ -2,10 +2,11 @@ import { Agent, fetch as undiciFetch, type RequestInit as UndiciRequestInit } fr
 
 const BACKEND = process.env.BACKEND_URL ?? 'https://localhost:8080';
 
-// Reject self-signed certs unless BACKEND_TLS_VERIFY=false is set explicitly
+// Only enforce TLS verification when BACKEND_TLS_VERIFY=true (e.g. production with a real cert).
+// Defaults to false so the self-signed backend cert works in dev and Docker.
 const agent = new Agent({
   connect: {
-    rejectUnauthorized: process.env.BACKEND_TLS_VERIFY !== 'false',
+    rejectUnauthorized: process.env.BACKEND_TLS_VERIFY === 'true',
   },
 });
 

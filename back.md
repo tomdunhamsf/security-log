@@ -39,6 +39,8 @@ Response (200):
 ```
 Appends to any existing rows with the same log name (never overwrites).
 
+**Format auto-detection**: the first non-blank line is inspected. If it contains `=` the file is parsed as Zscaler NSS key=value format (`ZscalerParser`). Otherwise it is parsed as tab-delimited with columns in fixed order: `time cip sip login ua method url respcode reqhdrsize reqsize resphrdsize respsize referrer` (`TsvParser`). Header rows (first column == `time`) are skipped automatically.
+
 ### GET /display
 
 ```json
@@ -226,5 +228,6 @@ back/
     │   ├── LogService.java              # Parse + batch-insert; list/query
     │   └── OpenAiAnalyzer.java          # Formats log rows as TSV, calls GPT-4o, parses JSON result
     └── util/
-        └── ZscalerParser.java           # NSS key=value line → LogEntry
+        ├── ZscalerParser.java           # NSS key=value line → LogEntry
+        └── TsvParser.java               # Tab-delimited line → LogEntry (fixed column order)
 ```

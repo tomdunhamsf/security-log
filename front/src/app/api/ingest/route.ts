@@ -13,19 +13,21 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Stream the raw body directly — parsing and re-serialising FormData would
-    // drop the original boundary from the Content-Type, breaking Tomcat's
-    // multipart parser.
+    // Read the full body into memory so undici sends it with a known
+    // Content-Length, which Tomcat's multipart parser requires.
+    const body = await req.arrayBuffer();
+
     const upstream = await backendFetch('/ingest', {
       method: 'POST',
       headers: { 'Content-Type': contentType },
-      body: req.body as unknown as BodyInit,
+      body,
       token,
     });
 
     const data = await upstream.json().catch(() => ({}));
     return NextResponse.json(data, { status: upstream.status });
-  } catch {
+  } catch (err) {
+    console.error('[ingest proxy] failed to reach backend:', err);
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

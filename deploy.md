@@ -3,10 +3,12 @@
 ## Architecture
 
 ```
-Browser → front (port 3000) → back (port 8080) → db (port 5432)
+Browser → nginx:443 (HTTPS) → front:3000 (HTTP, internal)
+                             → back:8080  (HTTPS, internal, self-signed cert)
+                                        → db:5432 (PostgreSQL, internal)
 ```
 
-All three services run as Docker containers. The browser only ever talks to the Next.js frontend on port 3000. The frontend proxies API calls to the Spring Boot backend. The backend stores logs in PostgreSQL.
+nginx handles browser-facing TLS. The Next.js frontend and Spring Boot backend communicate over the internal Docker network. The browser never connects to port 3000 or 8080 directly.
 
 ---
 
@@ -43,7 +45,8 @@ docker compose up --build
 - Subsequent runs are faster thanks to Docker layer caching.
 - The app is ready when you see the Spring Boot startup banner and the Next.js server log.
 
-Open http://localhost:3000 in your browser.
+Open **https://localhost** in your browser (accept the self-signed cert warning).
+HTTP on port 80 redirects to HTTPS automatically.
 
 To run in the background:
 
@@ -83,7 +86,7 @@ npm install
 npm run dev
 ```
 
-`npm run dev` sets `BACKEND_URL` to `https://localhost:8080` by default and accepts the self-signed cert.
+`npm run dev` connects to `https://localhost:8080` by default and accepts the self-signed cert (TLS verification is off unless `BACKEND_TLS_VERIFY=true`).
 
 ---
 
@@ -97,7 +100,7 @@ npm run dev
 | `back` | `JWT_SECRET` | Dev placeholder | **Override in production** — Base64, ≥32 bytes |
 | `back` | `OPEN_AI_KEY` | *(from .env)* | OpenAI API key |
 | `front` | `BACKEND_URL` | `https://back:8080` | URL the Next.js server uses to reach the backend |
-| `front` | `BACKEND_TLS_VERIFY` | `false` | Set to `true` only if the backend has a trusted cert |
+| `front` | `BACKEND_TLS_VERIFY` | *(unset → false)* | Set to `true` only if the backend has a CA-signed cert |
 
 To override any value without editing the compose file, add it to `.env`:
 
@@ -114,6 +117,7 @@ DB_PASSWORD=<your-db-password>
   ```bash
   openssl rand -base64 32
   ```
-- **BACKEND_TLS_VERIFY**: currently `false` because the backend uses a self-signed certificate. For production, replace the keystore with a CA-signed certificate and set this to `true`.
-- **Port 8080**: currently published to the host for debugging. In production, remove the `ports` entry from the `back` service so it is only reachable internally by the `front` container.
+- **nginx cert**: replace the self-signed cert with a CA-signed one (e.g. Let's Encrypt) and update `server_name` in `nginx/nginx.conf` to match your domain.
+- **BACKEND_TLS_VERIFY**: currently `false` because the backend uses a self-signed certificate. For production, replace the Spring Boot keystore with a CA-signed certificate and set this to `true`.
+- **Port 8080**: currently published to the host for debugging. In production, remove the `ports` entry from the `back` service.
 - **Postgres credentials**: change `DB_USER` and `DB_PASSWORD` before any internet-facing deployment.

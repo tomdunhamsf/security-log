@@ -33,13 +33,21 @@ services:
 
   front:
     build: ./front
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       BACKEND_URL: https://back:8080
-      BACKEND_TLS_VERIFY: "false"   # backend uses a self-signed cert; internal traffic only
     depends_on:
       - back
+    restart: unless-stopped
+
+  nginx:
+    build: ./nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - front
     restart: unless-stopped
 
 volumes:
