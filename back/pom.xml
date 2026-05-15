@@ -19,6 +19,7 @@
     <properties>
         <java.version>21</java.version>
         <jjwt.version>0.12.6</jjwt.version>
+        <langchain4j.version>0.36.0</langchain4j.version>
         <keystore.path>${project.build.outputDirectory}/keystore.p12</keystore.path>
         <keystore.password>changeit</keystore.password>
         <keystore.alias>securitylog</keystore.alias>
@@ -73,6 +74,13 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- LangChain4j OpenAI -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-open-ai</artifactId>
+            <version>${langchain4j.version}</version>
         </dependency>
 
         <!-- Test -->

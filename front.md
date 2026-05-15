@@ -38,6 +38,7 @@ The Next.js app acts as a **Backend-for-Frontend (BFF)**:
 | `POST` | `/api/ingest` | `POST https://localhost:8080/ingest` |
 | `GET` | `/api/display` | `GET https://localhost:8080/display` |
 | `GET` | `/api/display/[filename]` | `GET https://localhost:8080/display/<filename>` |
+| `POST` | `/api/display/[filename]/analyze` | `POST https://localhost:8080/display/<filename>/analyze` |
 
 ---
 
@@ -85,6 +86,16 @@ The log viewer (`/logs/[filename]`) handles both response formats from the backe
 Columns are ordered: preferred Zscaler fields first (action, reason, username, url, status, …),
 then any remaining fields alphabetically. Long values are truncated and revealed on hover.
 
+### Threat Analysis
+
+An **Analyze** button in the header sends `POST /api/display/[filename]/analyze` (empty body).
+The backend responds with:
+```json
+{ "description": "problem description", "certainty": 85, "rows": [0, 3, 7] }
+```
+- If `certainty > 0`: an orange banner shows the threat description and certainty percentage, and each row listed in `rows` (0-indexed) is highlighted in light red.
+- If `certainty === 0`: the result is silently ignored.
+
 ---
 
 ## Development
@@ -130,7 +141,9 @@ front/
 │   │       ├── ingest/route.ts
 │   │       └── display/
 │   │           ├── route.ts
-│   │           └── [filename]/route.ts
+│   │           └── [filename]/
+│   │               ├── route.ts
+│   │               └── analyze/route.ts
 │   ├── lib/
 │   │   ├── zscaler-validator.ts            # Client-side log validation
 │   │   └── backend.ts                      # Undici fetch wrapper (self-signed cert support)
