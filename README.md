@@ -23,7 +23,7 @@ On initial run this will be pulling in ngnix, next.js, Spring Boot, postgresql, 
 The database is always cleaned between startups, so that we don't need to consider log overwrites or deletion.
 
 ### Use
-The server will be at https://localhost/ - accept the self-signed cer
+The server will be at https://localhost/ - accept the self-signed cert
 
 The login is secadmin ChangeMe123!
 
@@ -39,10 +39,12 @@ The AI picks up on anomalies, but it could do better on selecting the relevant r
 
 ## General overview
 ngnix is providing ssl for the next.js in docker.
+
 I haven't used next.js before, but this was a constraint given.
 So my use might not be best practice, but basically you are going to have a page.tsx in each directory
-providing your html, css.  The api directory contains various route..ts to control POSTs to the backend.
-For more detail, and context used by Claude check [font.md](front.md)
+providing your html, css.  The api directory contains various route.ts to control POSTs to the backend.
+For more detail, and context used by Claude check [front.md](front.md)
+
 Spring Boot on Tomcat is the backend.  I explain why in the tradeoffs section, but I think I would move to Flask.
 Spring is a dependecy injection framework, your entry points are the controllers.
 Annotations wire the rest together.  JPA handles persistence of objects.
