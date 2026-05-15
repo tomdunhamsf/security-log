@@ -31,7 +31,7 @@ For this demo you can't add users or change passwords.
 
 The three log files in the root directory can be loaded in.
 america2-access.log has no anomally, the others do.
-If you don't have an OpenAIAPI key, I'll give some screenshots of analysis.
+If you don't have an OpenAIAPI key, I'll give some screenshots of analysis [here](results.md).
 
 Your auth cookie should be good across restarts.
 
